@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NWO Conspiracy Theory Explorer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for scrollability */
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        #statement-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            min-height: 60px; /* Ensure some space even if statement is short */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #statement-text {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .button-container {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            min-width: 100px;
+        }
+
+        #true-button {
+            background-color: #28a745; /* Green */
+        }
+        #true-button:hover {
+            background-color: #218838;
+        }
+
+        #false-button {
+            background-color: #dc3545; /* Red */
+        }
+        #false-button:hover {
+            background-color: #c82333;
+        }
+
+        #next-button, #restart-button {
+            background-color: #007bff; /* Blue */
+            margin-top: 10px;
+        }
+        #next-button:hover, #restart-button:hover {
+            background-color: #0056b3;
+        }
+
+        #feedback-message {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .correct {
+            color: #28a745;
+        }
+        .incorrect {
+            color: #dc3545;
+        }
+
+        #explanation-container {
+            text-align: left;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+
+        #explanation-container h3 {
+            margin-top: 0;
+            font-size: 1.1em;
+            color: #555;
+        }
+        #explanation-container p {
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        .proponent-view {
+            border-left: 3px solid #ffc107; /* Amber */
+            padding-left: 10px;
+            margin-bottom: 15px;
+        }
+        .skeptic-view {
+            border-left: 3px solid #17a2b8; /* Info Blue */
+            padding-left: 10px;
+        }
+
+        #summary-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        #summary-container h2 {
+            margin-top: 0;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+            #statement-text {
+                font-size: 1em;
+            }
+            button {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+            .button-container {
+                flex-direction: column; /* Stack buttons on small screens */
+            }
+            #explanation-container p {
+                font-size: 0.9em;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>New World Order: Belief Explorer</h1>
+
+        <div id="quiz-area">
+            <div id="statement-container">
+                <p id="statement-text">Loading statement...</p>
+            </div>
+
+            <div class="button-container" id="answer-buttons">
+                <button id="true-button">True</button>
+                <button id="false-button">False</button>
+            </div>
+
+            <div id="feedback-area" class="hidden">
+                <p id="feedback-message"></p>
+                <div id="explanation-container">
+                    <div class="proponent-view">
+                        <h3>Proponents' View:</h3>
+                        <p id="proponent-explanation"></p>
+                    </div>
+                    <div class="skeptic-view">
+                        <h3>Skeptics' View:</h3>
+                        <p id="skeptic-explanation"></p>
+                    </div>
+                </div>
+                <button id="next-button">Next Statement</button>
+            </div>
+        </div>
+
+        <div id="summary-area" class="hidden">
+            <h2>Quiz Completed!</h2>
+            <p id="summary-text"></p>
+            <button id="restart-button">Restart Explorer</button>
+        </div>
+    </div>
+
+    <script>
+        const statementsData = [
+            {
+                statement: "A small group of global elites, like international bankers, secretly controls the world's economy.",
+                correctAnswer: false, // Skeptical view is that it's more complex
+                proponentView: "Proponents point to the influence of institutions like the World Bank, IMF, Federal Reserve, and powerful banking families as evidence of centralized control aiming for a single global currency and economy.",
+                skepticView: "Skeptics argue that while wealthy individuals and institutions exert significant influence, the global economy is too complex and multifaceted to be controlled by a single secretive group. Economic policies result from diverse, often competing, interests."
+            },
+            {
+                statement: "Mainstream media is controlled by the NWO to disseminate propaganda and suppress dissenting voices.",
+                correctAnswer: false, // Skeptical view acknowledges bias but not monolithic NWO control
+                proponentView: "Proponents claim that a few corporations own most major media outlets, allowing them to shape public opinion, censor truth about NWO activities, and promote a specific agenda.",
+                skepticView: "Skeptics acknowledge media consolidation and potential biases, but attribute them to commercial interests, political leanings, and journalistic norms rather than a coordinated NWO plot. Independent media and the internet provide diverse viewpoints."
+            },
+            {
+                statement: "Major world events, like terrorist attacks or pandemics, are orchestrated by the NWO to create fear and justify increased control.",
+                correctAnswer: false, // Skeptical view is that these are real events, not NWO plots
+                proponentView: "Proponents cite inconsistencies or unanswered questions surrounding events like 9/11 or COVID-19 as evidence of manipulation to advance NWO goals like surveillance or restrictions on freedom.",
+                skepticView: "Skeptics argue that such events are complex with natural or known human causes. While governments might capitalize on crises, this doesn't imply they orchestrated them. Evidence for 'false flag' claims is often speculative or misinterpreted."
+            },
+            {
+                statement: "Secret societies like the Illuminati or Freemasons are actively working to establish the New World Order.",
+                correctAnswer: false, // Skeptical view denies overarching NWO plot by these groups
+                proponentView: "Proponents believe these groups operate in shadows, recruiting influential people to manipulate governments and economies towards a one-world authoritarian state.",
+                skepticView: "Skeptics view the historical Illuminati as short-lived, modern Freemasonry as largely fraternal/charitable. They argue there's a lack of credible evidence for these groups orchestrating a global conspiracy for an NWO."
+            },
+            {
+                statement: "The Bilderberg Group is a shadow world government deciding global policies in secret.",
+                correctAnswer: false, // Skeptical view sees it as a discussion forum, not a government
+                proponentView: "Proponents see the annual private meetings of powerful figures as a clandestine council making global decisions outside democratic processes.",
+                skepticView: "Skeptics describe it as an informal discussion forum where attendees can speak freely to foster understanding on major issues, but it has no executive power to enforce policies."
+            },
+            {
+                statement: "Mass surveillance technologies are being implemented by the NWO to monitor and control the entire population.",
+                correctAnswer: false, // Skeptical view attributes surveillance to other factors, not singular NWO plot
+                proponentView: "Proponents point to CCTV, facial recognition, and data mining as tools for an NWO surveillance state, leading to total control.",
+                skepticView: "Skeptics acknowledge expanded surveillance by governments and corporations but attribute it to security concerns, crime prevention, and commercial interests, rather than a unified NWO plot. The role of legal frameworks is also emphasized."
+            },
+            {
+                statement: "The United Nations (UN) is a vehicle for establishing a tyrannical one-world government that will abolish national sovereignty.",
+                correctAnswer: false, // Skeptical view sees UN power as limited
+                proponentView: "Proponents point to UN initiatives promoting global governance and international laws as evidence of an incremental erosion of national sovereignty, paving the way for a global superstate.",
+                skepticView: "Skeptics argue that the UN's power is limited by the sovereignty of its member states. Its role is primarily to facilitate cooperation and provide humanitarian aid, not to dominate nations."
+            },
+            {
+                statement: "The NWO aims to disarm populations to prevent resistance against their global takeover.",
+                correctAnswer: false, // Skeptical view separates gun control debates from NWO plot
+                proponentView: "Proponents believe that gun control measures are part of a deliberate NWO strategy to leave citizens defenseless against the imposition of authoritarian rule.",
+                skepticView: "Skeptics view gun control debates as driven by concerns over public safety and crime rates, not as a coordinated NWO plot. Mass disarmament in many countries would be practically and politically infeasible."
+            },
+            {
+                statement: "The NWO plans to drastically reduce the world's population through engineered famines, diseases, or wars.",
+                correctAnswer: false, // Skeptical view finds no credible evidence for depopulation plots
+                proponentView: "Proponents interpret discussions about overpopulation or public health measures as coded language for depopulation agendas, sometimes citing controversial sources.",
+                skepticView: "Skeptics attribute concerns about population to resource management and public health, not a malevolent plot. Depopulation theories lack credible evidence and often rely on misinterpretations."
+            },
+            {
+                statement: "Microchips will be implanted in people for total control and tracking by the NWO.",
+                correctAnswer: false, // Skeptical view: current tech not for NWO control
+                proponentView: "Proponents fear that technologies like RFID chips will be mandated for identification, financial transactions, and ultimately, control as part of the NWO agenda.",
+                skepticView: "Skeptics acknowledge existing implantable microchips for specific uses (e.g., medical, pets) but argue there's no evidence of a plan for compulsory mass implantation for NWO control. Ethical concerns are debated openly."
+            },
+            {
+                statement: "UN's 'Agenda 21' or 'Agenda 2030' are blueprints for NWO totalitarian control over individuals and property.",
+                correctAnswer: false, // Skeptical view: non-binding sustainability frameworks
+                proponentView: "Proponents see these UN initiatives for sustainable development as a cover for policies that will restrict private property rights and impose global socialist governance.",
+                skepticView: "Skeptics describe Agenda 21/2030 as non-binding frameworks offering recommendations for sustainable development. Implementation is voluntary and determined by national governments."
+            },
+            {
+                statement: "Chemtrails are chemicals secretly sprayed by aircraft as part of an NWO program for nefarious purposes like weather modification or population control.",
+                correctAnswer: false, // Skeptical view: contrails are normal, no evidence of chemtrails
+                proponentView: "Proponents believe persistent contrails are actually 'chemtrails' containing harmful substances, citing unusual cloud patterns or alleged health effects.",
+                skepticView: "Skeptics explain persistent contrails as normal condensation trails (ice crystals) forming under specific atmospheric conditions. Scientific research has found no evidence of secret 'chemtrail' spraying programs."
+            }
+        ];
+
+        let currentStatementIndex = 0;
+        let score = 0;
+        let shuffledStatements = [];
+
+        const statementTextEl = document.getElementById('statement-text');
+        const trueButton = document.getElementById('true-button');
+        const falseButton = document.getElementById('false-button');
+        const feedbackMessageEl = document.getElementById('feedback-message');
+        const proponentExplanationEl = document.getElementById('proponent-explanation');
+        const skepticExplanationEl = document.getElementById('skeptic-explanation');
+        const nextButton = document.getElementById('next-button');
+        const restartButton = document.getElementById('restart-button');
+
+        const quizAreaEl = document.getElementById('quiz-area');
+        const feedbackAreaEl = document.getElementById('feedback-area');
+        const answerButtonsEl = document.getElementById('answer-buttons');
+        const summaryAreaEl = document.getElementById('summary-area');
+        const summaryTextEl = document.getElementById('summary-text');
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function loadStatement() {
+            if (currentStatementIndex < shuffledStatements.length) {
+                const currentStatement = shuffledStatements[currentStatementIndex];
+                statementTextEl.textContent = currentStatement.statement;
+
+                quizAreaEl.classList.remove('hidden');
+                summaryAreaEl.classList.add('hidden');
+                feedbackAreaEl.classList.add('hidden');
+                answerButtonsEl.classList.remove('hidden');
+
+                trueButton.disabled = false;
+                falseButton.disabled = false;
+            } else {
+                showSummary();
+            }
+        }
+
+        function handleAnswer(userAnswer) {
+            trueButton.disabled = true;
+            falseButton.disabled = true;
+            answerButtonsEl.classList.add('hidden');
+
+            const currentStatement = shuffledStatements[currentStatementIndex];
+            const isCorrect = (userAnswer === currentStatement.correctAnswer);
+
+            if (isCorrect) {
+                score++;
+                feedbackMessageEl.textContent = "Correct!";
+                feedbackMessageEl.className = 'correct';
+            } else {
+                feedbackMessageEl.textContent = "Incorrect!";
+                feedbackMessageEl.className = 'incorrect';
+            }
+
+            proponentExplanationEl.textContent = currentStatement.proponentView;
+            skepticExplanationEl.textContent = currentStatement.skepticView;
+
+            feedbackAreaEl.classList.remove('hidden');
+        }
+
+        function nextStatement() {
+            currentStatementIndex++;
+            loadStatement();
+        }
+
+        function showSummary() {
+            quizAreaEl.classList.add('hidden');
+            summaryAreaEl.classList.remove('hidden');
+            summaryTextEl.textContent = `You answered ${score} out of ${shuffledStatements.length} statements in line with a critically evaluative perspective.`;
+        }
+
+        function startQuiz() {
+            currentStatementIndex = 0;
+            score = 0;
+            shuffledStatements = [...statementsData]; // Create a new copy
+            shuffleArray(shuffledStatements);
+            loadStatement();
+        }
+
+        trueButton.addEventListener('click', () => handleAnswer(true));
+        falseButton.addEventListener('click', () => handleAnswer(false));
+        nextButton.addEventListener('click', nextStatement);
+        restartButton.addEventListener('click', startQuiz);
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', startQuiz);
+    </script>
+</body>
+</html>
